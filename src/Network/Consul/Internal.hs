@@ -6,7 +6,7 @@ module Network.Consul.Internal
   ( hostWithScheme
   , createRequest 
   , decodeAndStrip
-
+  , emptyHttpManager
   ) where
 
 import Control.Monad.IO.Class
@@ -50,4 +50,6 @@ decodeAndStrip :: ByteString -> String
 decodeAndStrip = T.unpack . T.strip . TE.decodeUtf8
 
 
-
+-- a convenience utility for clarity
+emptyHttpManager :: Maybe Manager
+emptyHttpManager = Nothing

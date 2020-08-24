@@ -20,7 +20,7 @@ import Data.UUID
 import Network.Consul (createSession, deleteKey, destroySession,getKey, getSequencerForLock,getSessionInfo,initializeConsulClient, isValidSequencer,putKey,putKeyAcquireLock,withSession,ConsulClient(..),runService,getServiceHealth)
 import Network.Consul.Types
 import Network.Consul
-import Network.Consul.Internal (hostWithScheme)
+import Network.Consul.Internal (hostWithScheme, emptyHttpManager)
 import Network.HTTP.Client
 import Network.Socket (PortNumber(..))
 import System.IO (hFlush)
@@ -37,7 +37,7 @@ consulPort :: PortNumber
 consulPort = 18500
 
 newClient :: IO ConsulClient
-newClient = initializeConsulClient "localhost" consulPort Nothing
+newClient = initializeConsulClient "localhost" consulPort emptyHttpManager
 
 {- Internal Tests -}
 internalKVTests :: TestTree
