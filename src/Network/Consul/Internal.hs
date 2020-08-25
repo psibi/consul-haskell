@@ -31,11 +31,7 @@ createRequest :: MonadIO m => Text -> PortNumber -> Text -> Maybe Text -> Maybe 
 createRequest hostWithScheme portNumber endpoint query body wait dc = do
   let baseUrl = T.concat [hostWithScheme,":",T.pack $ show portNumber,endpoint,needQueryString
                          ,maybe "" id query, prefixAnd, maybe "" (\ (Datacenter x) -> T.concat["dc=",x]) dc]
-  -- TODO: In the use of ‘parseUrl’
-  -- (imported from Network.HTTP.Client, but defined in
-  -- http-client-0.5.14:Network.HTTP.Client.Request):
-  -- Deprecated: "Please use parseUrlThrow, parseRequest, or parseRequest_ instead"
-  initReq <- liftIO $ parseUrl $ T.unpack baseUrl
+  initReq <- liftIO $ parseUrlThrow $ T.unpack baseUrl
   case body of
       Just x -> return $ indef $ initReq{ method = "PUT", requestBody = RequestBodyBS x, checkResponse = \ _ _ -> return ()}
       Nothing -> return $ indef $ initReq{checkResponse = \ _ _ -> return ()}
