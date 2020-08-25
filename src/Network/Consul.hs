@@ -290,7 +290,7 @@ getServiceChecks _client@ConsulClient{..} name = do
 getServiceHealth :: MonadIO m => ConsulClient -> Text -> m (Maybe [Health])
 getServiceHealth _client@ConsulClient{..} name = do
   let hostnameWithScheme = hostWithScheme _client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/health/service/", name]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/health/service/", name]
   liftIO $ withResponse initReq ccManager $ \ response -> do
     bodyParts <- brConsume $ responseBody response
     let body = B.concat bodyParts
@@ -301,7 +301,7 @@ getServiceHealth _client@ConsulClient{..} name = do
 getDatacenters :: MonadIO m => ConsulClient -> m [Datacenter]
 getDatacenters client@ConsulClient{..} = liftIO $ do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/catalog/datacenters/"]
+  initReq <- parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/catalog/datacenters/"]
   withResponse initReq ccManager $ \ response -> do
     bodyParts <- brConsume $ responseBody response
     let body = B.concat bodyParts
@@ -353,7 +353,7 @@ getServices _client@ConsulClient{..} tag dc = do
 getSelf :: MonadIO m => ConsulClient -> m (Maybe Self)
 getSelf _client@ConsulClient{..} =  do
   let hostnameWithScheme = hostWithScheme _client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/self"]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/self"]
   liftIO $ withResponse initReq ccManager $ \ response -> do
     bodyParts <- brConsume $ responseBody response
     let body = B.concat bodyParts
@@ -515,7 +515,7 @@ getHealthChecks  manager hostname portNumber dc = do
 registerHealthCheck :: MonadIO m => ConsulClient -> RegisterHealthCheck -> m ()
 registerHealthCheck client@ConsulClient{..} request = do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/register"]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/register"]
   let httpReq = initReq { method = "PUT", requestBody = RequestBodyBS $ BL.toStrict $ encode request}
   liftIO $ withResponse httpReq ccManager $ \ response -> do
     _bodyParts <- brConsume $ responseBody response
@@ -568,7 +568,7 @@ passHealthCheck client checkId dc = do
 warnHealthCheck :: MonadIO m => ConsulClient -> Text -> m ()
 warnHealthCheck client@ConsulClient{..} checkId = do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/warn/", checkId]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/warn/", checkId]
   liftIO $ withResponse initReq ccManager $ \ response -> do
     _bodyParts <- brConsume $ responseBody response
     return ()
@@ -577,7 +577,7 @@ warnHealthCheck client@ConsulClient{..} checkId = do
 failHealthCheck :: MonadIO m => ConsulClient -> Text -> m ()
 failHealthCheck client@ConsulClient{..} checkId = do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/fail/", checkId]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostnameWithScheme, ":", T.pack $ show ccPort ,"/v1/agent/check/fail/", checkId]
   liftIO $ withResponse initReq ccManager $ \ response -> do
     _bodyParts <- brConsume $ responseBody response
     return ()
@@ -607,7 +607,7 @@ deregisterService client service = do
   let portNumber = ccPort client
       manager = ccManager client
       hostname = hostWithScheme client
-  initReq <- liftIO $ parseUrl $ T.unpack $ T.concat [hostname, ":", T.pack $ show portNumber ,"/v1/agent/service/deregister/", service]
+  initReq <- liftIO $ parseUrlThrow $ T.unpack $ T.concat [hostname, ":", T.pack $ show portNumber ,"/v1/agent/service/deregister/", service]
   liftIO $ withResponse initReq manager $ \ response -> do
     _bodyParts <- brConsume $ responseBody response
     return ()
