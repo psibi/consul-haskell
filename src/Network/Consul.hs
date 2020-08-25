@@ -331,7 +331,13 @@ getService _client@ConsulClient{..} name tag dc= do
 -- TODO: DOC
 getServices :: MonadIO m => ConsulClient -> Maybe Text -> Maybe Datacenter -> m [Text]
 getServices _client@ConsulClient{..} tag dc = do
-    req <- createRequest ccHostname ccPort "/v1/catalog/services" Nothing Nothing False dc
+    req <- createRequest (hostWithScheme _client)
+                         ccPort
+                         "/v1/catalog/services"
+                         Nothing
+                         Nothing
+                         False
+                         dc
     liftIO $ withResponse req ccManager $ \ response -> do
         bodyParts <- brConsume $ responseBody response
         return $ parseServices tag $ decode $ BL.fromStrict $ B.concat bodyParts
@@ -389,7 +395,13 @@ runService client request action dc = do
 createSession :: MonadIO m => ConsulClient -> SessionRequest -> Maybe Datacenter -> m (Maybe Session)
 createSession client@ConsulClient{..} request dc = do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- createRequest hostnameWithScheme ccPort "/v1/session/create" Nothing (Just $ BL.toStrict $ encode request) False dc
+  initReq <- createRequest hostnameWithScheme
+                           ccPort
+                           "/v1/session/create"
+                           Nothing
+                           (Just $ BL.toStrict $ encode request)
+                           False
+                           dc
   liftIO $ withResponse initReq ccManager $ \ response -> do
     case responseStatus response of
       x | x == status200 -> do
@@ -401,7 +413,13 @@ createSession client@ConsulClient{..} request dc = do
 destroySession :: MonadIO m => ConsulClient -> Session -> Maybe Datacenter ->  m ()
 destroySession client@ConsulClient{..} (Session session _) dc  = do
   let hostnameWithScheme = hostWithScheme client
-  initReq <- createRequest hostnameWithScheme ccPort (T.concat ["/v1/session/destroy/", session]) Nothing Nothing False dc
+  initReq <- createRequest hostnameWithScheme
+                           ccPort
+                           (T.concat ["/v1/session/destroy/", session])
+                           Nothing
+                           Nothing
+                           False
+                           dc
   let req = initReq{method = "PUT"}
   liftIO $ withResponse req ccManager $ \ _response -> return ()
 
@@ -426,7 +444,13 @@ renewSession client@ConsulClient{..} (Session session _) dc =  do
 getSessionInfo :: MonadIO m => ConsulClient -> Session -> Maybe Datacenter ->  m (Maybe [SessionInfo])
 getSessionInfo client@ConsulClient{..} (Session session _) dc = do
   let hostnameWithScheme = hostWithScheme client
-  req <- createRequest hostnameWithScheme ccPort (T.concat ["/v1/session/info/",session]) Nothing Nothing False dc
+  req <- createRequest hostnameWithScheme
+                       ccPort
+                       (T.concat ["/v1/session/info/",session])
+                       Nothing
+                       Nothing
+                       False
+                       dc
   liftIO $ withResponse req ccManager $ \ response -> do
     case responseStatus response of
       x | x == status200 -> do
@@ -565,7 +589,13 @@ registerService client request dc = do
   let portNumber = ccPort client
       manager = ccManager client
       hostname = hostWithScheme client
-  initReq <- createRequest hostname portNumber "/v1/agent/service/register" Nothing (Just $ BL.toStrict $ encode request) False dc
+  initReq <- createRequest hostname
+                           portNumber
+                           "/v1/agent/service/register"
+                           Nothing
+                           (Just $ BL.toStrict $ encode request)
+                           False
+                           dc
   liftIO $ withResponse initReq manager $ \ response -> do
     case responseStatus response of
       x | x == status200 -> return True
